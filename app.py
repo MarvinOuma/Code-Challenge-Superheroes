@@ -1,6 +1,7 @@
 from flask import Flask, jsonify, request, abort
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
+from sqlalchemy.exc import IntegrityError
 
 import models
 
