@@ -2,27 +2,24 @@ from flask import Flask, jsonify, request, abort
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 
+import models
+
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///superheroes.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-db = SQLAlchemy(app)
+db = models.db
+db.init_app(app)
 migrate = Migrate(app, db)
-
-from models import Hero, Power, HeroPower, db
-from sqlalchemy.exc import IntegrityError
-from flask import make_response
-
-# Models will be defined here later
 
 @app.route('/heroes', methods=['GET'])
 def get_heroes():
-    heroes = Hero.query.all()
+    heroes = models.Hero.query.all()
     return jsonify([hero.to_dict() for hero in heroes])
 
 @app.route('/heroes/<int:id>', methods=['GET'])
 def get_hero(id):
-    hero = Hero.query.get(id)
+    hero = models.Hero.query.get(id)
     if hero:
         return jsonify(hero.to_dict_with_powers())
     else:
@@ -30,12 +27,12 @@ def get_hero(id):
 
 @app.route('/powers', methods=['GET'])
 def get_powers():
-    powers = Power.query.all()
+    powers = models.Power.query.all()
     return jsonify([power.to_dict() for power in powers])
 
 @app.route('/powers/<int:id>', methods=['GET'])
 def get_power(id):
-    power = Power.query.get(id)
+    power = models.Power.query.get(id)
     if power:
         return jsonify(power.to_dict())
     else:
@@ -43,7 +40,7 @@ def get_power(id):
 
 @app.route('/powers/<int:id>', methods=['PATCH'])
 def update_power(id):
-    power = Power.query.get(id)
+    power = models.Power.query.get(id)
     if not power:
         return jsonify({'error': 'Power not found'}), 404
     data = request.get_json()
@@ -61,7 +58,7 @@ def update_power(id):
 def create_hero_power():
     data = request.get_json()
     try:
-        hero_power = HeroPower(
+        hero_power = models.HeroPower(
             strength=data['strength'],
             hero_id=data['hero_id'],
             power_id=data['power_id']
